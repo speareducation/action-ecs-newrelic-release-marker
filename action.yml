@@ -16,12 +16,14 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Dependencies
+      shell: bash
       run: |
         test -x jq || apt-get -y install jq
         test -x curl || apt-get -y install curl
 
     - name: Read Task Definition
       id: taskdef
+      shell: bash
       run: |
         envJson="$(jq -rc '.containerDefinitions[0].environment[]' ${{ inputs.task-definition }})"
         echo "::set-output name=enabled::$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE").value')"
@@ -32,6 +34,7 @@ runs:
 
     - name: Post Marker
       if: steps.taskdef.outputs.enabled
+      shell: bash
       run: |
         postdata='{ "deployment": { "revision": "${{ inputs.release }}" } }'
         apiUrl='https://api.newrelic.com/v2/applications/${{ steps.taskdef.outputs.appId }}/deployments.json'
