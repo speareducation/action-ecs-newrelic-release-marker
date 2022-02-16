@@ -18,8 +18,8 @@ runs:
     - name: Setup Dependencies
       shell: bash
       run: |
-        test -x jq || apt-get -y install jq
-        test -x curl || apt-get -y install curl
+        command -v jq || apt-get -y install jq
+        command -v curl || apt-get -y install curl
 
     - name: Read Task Definition
       id: taskdef
