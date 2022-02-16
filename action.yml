@@ -18,10 +18,10 @@ runs:
     - name: Setup Dependencies
       shell: bash
       run: |
-        appsToInstall=""
-        command -v jq || appsToInstall="$appsToInstall jq"
-        command -v curl || appsToInstall="$appsToInstall curl"
-        test -n "$appsToInstall" && apt-get update && apt-get install $appsToInstall
+        appsToInstall=()
+        command -v jq || appsToInstall+=("jq")
+        command -v curl || appsToInstall+=("curl")
+        test ${#appsToInstall[@]} -gt 0 && apt-get update && apt-get install ${appsToInstall[@]}
 
     - name: Read Task Definition
       id: taskdef
