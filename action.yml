@@ -26,8 +26,8 @@ runs:
       shell: bash
       run: |
         envJson="$(jq -rc '.containerDefinitions[0].environment[]' ${{ inputs.task-definition }})"
-        echo "::set-output name=enabled::$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE").value')"
-        appName="$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_APP_NAME").value')"
+        echo "::set-output name=enabled::$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE" or .name == "NEW_RELIC_ENABLED").value')"
+        appName="$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_APP_NAME" or .name == "NEW_RELIC_APP_NAME").value')"
         echo "::set-output name=appName::$appName"
         appId=$(test -n "$appName" && curl -s 'https://api.newrelic.com/v2/applications.json' -H "X-Api-Key:${{ inputs.newrelic-api-key }}" -d "filter[name]=${appName}" | jq -r '.applications[0].id')
         echo "::set-output name=appId::$appId"
