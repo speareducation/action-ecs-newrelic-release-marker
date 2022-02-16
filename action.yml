@@ -1,0 +1,40 @@
+name: NewRelic ECS Release Markers
+description: Reads a Task Definition and sends a release marker to NewRelic
+
+inputs:
+  newrelic-api-key:
+    description: NewRelic API Key
+    required: true
+  release: 
+    description: The release tag
+    required: true
+  task-definition:
+    description: The Task Definition file
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Dependencies
+      run: |
+        test -x jq || apt-get -y install jq
+        test -x curl || apt-get -y install curl
+
+    - name: Read Task Definition
+      id: taskdef
+      run: |
+        envJson="$(jq -rc '.containerDefinitions[0].environment[]' ${{ inputs.task-definition }})"
+        echo "::set-output name=enabled::$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE").value')"
+        appName="$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_APP_NAME").value')"
+        echo "::set-output name=appName::$appName"
+        appId=$(test -n "$appName" && curl -s 'https://api.newrelic.com/v2/applications.json' -H "X-Api-Key:${{ inputs.newrelic-api-key }}" -d "filter[name]=${appName}" | jq -r '.applications[0].id')
+        echo "::set-output name=appId::$appId"
+
+    - name: Post Marker
+      if: steps.taskdef.outputs.enabled
+      run: |
+        postdata='{ "deployment": { "revision": "${{ inputs.release }}" } }'
+        apiUrl='https://api.newrelic.com/v2/applications/${{ steps.taskdef.outputs.appId }}/deployments.json'
+        curl -X POST  -d "$postdata" -H 'Content-Type: application/json' -H 'X-Api-Key:${{ inputs.newrelic-api-key }}' "$apiUrl"
+
+    
