@@ -41,5 +41,3 @@ runs:
         postdata='{ "deployment": { "revision": "${{ inputs.release }}" } }'
         apiUrl='https://api.newrelic.com/v2/applications/${{ steps.taskdef.outputs.appId }}/deployments.json'
         curl -X POST  -d "$postdata" -H 'Content-Type: application/json' -H 'X-Api-Key:${{ inputs.newrelic-api-key }}' "$apiUrl"
-
-    
