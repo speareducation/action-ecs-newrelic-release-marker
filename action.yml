@@ -21,7 +21,9 @@ runs:
         appsToInstall=()
         command -v jq || appsToInstall+=("jq")
         command -v curl || appsToInstall+=("curl")
-        test ${#appsToInstall[@]} -gt 0 && { apt-get update && apt-get install -y ${appsToInstall[@]} } || true
+        if [[ ${#appsToInstall[@]} -gt 0 ]]; then
+          apt-get update && apt-get install -y ${appsToInstall[@]}
+        fi
 
     - name: Read Task Definition
       id: taskdef
