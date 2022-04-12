@@ -35,7 +35,7 @@ runs:
         echo "::set-output name=appId::$appId"
 
     - name: Post Marker
-      if: steps.taskdef.outputs.enabled
+      if: steps.taskdef.outputs.enabled == '1'
       shell: bash
       run: |
         postdata='{ "deployment": { "revision": "${{ inputs.release }}" } }'
