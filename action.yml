@@ -30,14 +30,16 @@ runs:
       shell: bash
       run: |
         envJson="$(jq -rc '.containerDefinitions[0].environment[]' ${{ inputs.task-definition }})"
-        echo "enabled=$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE" or .name == "NEW_RELIC_ENABLED").value')" >> ${GITHUB_OUTPUT}
+        enabled=$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_ENABLE" or .name == "NEW_RELIC_ENABLED").value')
+        [[ "$enabled" != "1" ]] && exit 0
+        echo "enabled=$enabled" >> ${GITHUB_OUTPUT}
         appName="$(echo "$envJson" | jq -r 'select(.name == "NEWRELIC_APP_NAME" or .name == "NEW_RELIC_APP_NAME").value')"
         echo "appName=$appName" >> ${GITHUB_OUTPUT}
         appId=$(test -n "$appName" && curl -s 'https://api.newrelic.com/v2/applications.json' -H "X-Api-Key:${{ inputs.newrelic-api-key }}" -d "filter[name]=${appName}" | jq -r '.applications[0].id')
         echo "appId=$appId" >> ${GITHUB_OUTPUT}
 
     - name: Post Marker
-      if: steps.taskdef.outputs.enabled
+      if: steps.taskdef.outputs.enabled == '1'
       shell: bash
       run: |
         postdata='{ "deployment": { "revision": "${{ inputs.release }}" } }'
